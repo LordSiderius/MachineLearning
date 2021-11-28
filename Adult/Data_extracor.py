@@ -19,15 +19,18 @@ from sklearn import preprocessing
 import numpy as np
 
 
+# Headlines to data extraction
 names = ['age', 'workclass','fnlwgt','education','education-num','marital-status','occupation','relationship','race',
          'sex','capital-gain', 'capital-loss', 'hours-per-week', 'native-country', 'salary']
-
+# Loading the dataset from CSV file
 dataset = read_csv('data/adult.data', names=names, delimiter=',', encoding="utf-8")
 # print(dataset['workclass'])
 # print('dataset:')
 # print(dataset.head(20))
 
 
+# String values must be mapped to enums to be able put in algo
+# dictionary with values to be enumerated is created in this section
 mapping = {}
 mapping['education'] = ['Bachelors', 'Some-college', '11th', 'HS-grad', 'Prof-school', 'Assoc-acdm', 'Assoc-voc', '9th', '7th-8th',
            '12th', 'Masters', '1st-4th', '10th', 'Doctorate', '5th-6th', 'Preschool', '?']
@@ -57,6 +60,7 @@ mapping['native-country'] = "United-States, Cambodia, England, Puerto-Rico, Cana
 
 mapping['salary'] = ">50K, <=50K, ?".split(', ')
 
+# for loop for remapping the strings into integers
 for key in mapping:
 
     le = preprocessing.LabelEncoder()
@@ -72,6 +76,8 @@ for key in mapping:
 # scatter_matrix(dataset)
 # pyplot.show()
 #
+
+# training data are created from dataset, it is transfered to array and than split by 90% border
 array = dataset.values
 
 X = array[:, 0:14]
@@ -80,12 +86,8 @@ y = array[:, 14]
 #
 X_train, X_validation, Y_train, Y_validation = train_test_split(X,y, test_size=0.10, random_state=1)
 
-# kfold = StratifiedKFold(n_splits=5, random_state=42, shuffle=True)
-# cv_results = cross_val_score( GaussianNB(), X_train, Y_train, cv=kfold, scoring='accuracy')
-#
-# print(cv_results.mean())
 
-#
+
 #
 # Spot Check Algorithms
 models = []
@@ -95,18 +97,20 @@ models.append(('KNN', KNeighborsClassifier()))
 models.append(('CART', DecisionTreeClassifier()))
 models.append(('NB', GaussianNB()))
 models.append(('SVM', SVC(gamma='auto')))
-# models.append(('MLPA', MLPClassifier(solver='adam', alpha=1e-5, hidden_layer_sizes=(250,), random_state=1)))
-# models.append(('MLPS', MLPClassifier(solver='sgd', alpha=1e-5, hidden_layer_sizes=(250,), random_state=1)))
+models.append(('MLPA', MLPClassifier(solver='adam', alpha=1e-5, hidden_layer_sizes=(50,), random_state=1)))
+models.append(('MLPS', MLPClassifier(solver='sgd', alpha=1e-5, hidden_layer_sizes=(50,), random_state=1)))
 # evaluate each model in turn
-# results = []
-# names = []
-# for name, model in models:
-#     kfold = StratifiedKFold(n_splits=10, random_state=1, shuffle=True)
-#     cv_results = cross_val_score(model, X_train, Y_train, cv=kfold, scoring='accuracy')
-#     results.append(cv_results)
-#     names.append(name)
-#     print('%s: %f (%f)' % (name, cv_results.mean(), cv_results.std()))
+results = []
+names = []
+for name, model in models:
+    kfold = StratifiedKFold(n_splits=10, random_state=1, shuffle=True)
+    cv_results = cross_val_score(model, X_train, Y_train, cv=kfold, scoring='accuracy')
+    results.append(cv_results)
+    names.append(name)
+    print('%s: %f (%f)' % (name, cv_results.mean(), cv_results.std()))
 #
+
+# CART model was chossen to predicts data
 model = DecisionTreeClassifier()
 model.fit(X_train, Y_train)
 predictions = model.predict(X_validation)
@@ -116,15 +120,3 @@ print(predictions)
 print(accuracy_score(Y_validation, predictions))
 print(confusion_matrix(Y_validation, predictions))
 print(classification_report(Y_validation, predictions))
-
-# input('go to MLP')
-#
-# model = MLPClassifier(solver='sgd', alpha=1e-6, hidden_layer_sizes=(250,), random_state=1)
-# model.fit(X_train, Y_train)
-# predictions = model.predict(X_validation)
-# print(predictions)
-
-# Score evaluation
-# print(accuracy_score(Y_validation, predictions))
-# print(confusion_matrix(Y_validation, predictions))
-# print(classification_report(Y_validation, predictions))
