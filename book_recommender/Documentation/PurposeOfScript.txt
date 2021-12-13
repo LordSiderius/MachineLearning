@@ -1,0 +1,10 @@
+should find user, who reads tolkien and the fellowship of the ring (the lord of the rings, part 1)
+
+and return other books they read?
+
+quality of other books are comapred to threshold, to recommend only ones woth high amount of ratings
+
+programm execution:
+
+load ratigns of books, which are not zero
+load books database
