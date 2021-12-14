@@ -16,17 +16,14 @@ class Book_database(object):
 
         ratings = ratings[ratings['Book-Rating'] != 0]
 
-        # merge of the datasets based on ISNB code
+        # merge the datasets
         dataset = pd.merge(ratings, books, on=['ISBN'])
 
-        # all data in database are set lowercase to make strings comparable
         self.dataset = dataset.apply(lambda x: x.str.lower() if (x.dtype == 'object') else x)
 
     def recommend(self, book_title_input='the fellowship of the ring (the lord of the rings, part 1)',
                   book_author='tolkien', threshold=8):
 
-
-        # string of book title and book author are stripped and make lowercase to make them comparable
         book_title_input = book_title_input.strip().lower()
         book_author = book_author.strip().lower()
 
@@ -34,19 +31,20 @@ class Book_database(object):
             (self.dataset['Book-Title'] == book_title_input) &
             (self.dataset['Book-Author'].str.contains(book_author))]
 
-        # removal of duplicities in books readers
         book_readers = np.unique(book_readers.tolist())
 
-        # set of books read by identified readers
+        # final dataset
         books_of_given_readers = self.dataset[(self.dataset['User-ID'].isin(book_readers))]
 
-        # number of ratings per other books in dataset
+
+        # Number of ratings per other books in dataset
         number_of_rating_per_book = books_of_given_readers.groupby('Book-Title').agg('count').reset_index()
 
 
         # select only books which have actually higher number of ratings than threshold
         books_to_compare = number_of_rating_per_book['Book-Title'][
             number_of_rating_per_book['User-ID'] >= threshold]  # !!! 8 as magic number
+
 
         books_to_compare = books_to_compare.tolist()
 
@@ -60,7 +58,7 @@ class Book_database(object):
         # reset index to see User-ID in every row
         ratings_data_raw_nodup = ratings_data_raw_nodup.to_frame().reset_index()
 
-        # reshape the data and make Book-Title as x-axe
+        # reshape the data and make BookTitle as x-axe
         dataset_for_corr = ratings_data_raw_nodup.pivot(index='User-ID', columns='Book-Title', values='Book-Rating')
 
         # take out given book from selected books from correlation dataframe
@@ -71,15 +69,17 @@ class Book_database(object):
         correlations = []
         avg_rating = []
 
-        # given book ratings
+        # corr computation
         book_input_ratings = dataset_for_corr[book_title_input]
+
+        tmp = ratings_data_raw[ratings_data_raw['Book-Title'].isin(book_titles)]
+        aaa = tmp[['Book-Title','Book-Rating']].groupby(['Book-Title']).mean()
+
 
         for book_title in book_titles:
 
-            # correlation of each book from other books list with given book
             correlations.append(book_input_ratings.corr(dataset_of_other_books[book_title]))
 
-            # calculation of average rating of each book from other books list
             tab = (ratings_data_raw[ratings_data_raw['Book-Title'] == book_title].groupby(
                 ratings_data_raw['Book-Title']).mean())
 
@@ -102,5 +102,4 @@ if __name__ == '__main__':
     book_title_input = 'The fellowship of the ring (the lord of the rings, part 1)'
     book_author = 'tolkien'
     threshold = 8
-
     print(book_database.recommend(book_title_input, book_author, threshold))
