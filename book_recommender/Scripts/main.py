@@ -27,4 +27,4 @@ def results():
     return render_template('results.html', book_title=book_title, book_author=book_author, results=results)
 
 if __name__ == '__main__':
-    app.run(debug=DEBUG)
+    app.run(debug=True, host='0.0.0.0')

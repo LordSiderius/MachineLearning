@@ -14,9 +14,10 @@ class Book_database(object):
                                      "Book-Rating": int})
 
         # discard ratings with zero rating of book
-        self.ratings = ratings[ratings['Book-Rating'] != 0]
+        ratings = ratings[ratings['Book-Rating'] != 0]
 
-        # self.dataset = dataset.apply(lambda x: x.str.lower() if (x.dtype == 'object') else x)
+        self.books.merge(ratings, on='ISBN')
+
 
     def get_book_ISBN(self, book_title_input='  The Fellowship of the ring (the lord of the rings, part 1)',
                   book_author='tolkien'):
@@ -115,8 +116,8 @@ class Book_database(object):
 if __name__ == '__main__':
     # loading the database
     book_database = Book_database()
-    book_database.get_book_ISBN()
-    book_database.recommend()
+    # book_database.get_book_ISBN()
+    # book_database.recommend()
 
 
     # book_title_input = 'the fellowship of the ring (the lord of the rings, part 1)'
