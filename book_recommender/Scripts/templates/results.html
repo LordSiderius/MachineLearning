@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Results{% endblock %}
+{% block head %}
+    {{ super() }}
+{% endblock %}
+{% block content %}
+    
+<main role="main">
+    <section class="jumbotron text-center">
+        <div class="container">
+            <h1>Recommendation system</h1>
+            <p class="lead text-muted">Something short and leading about the collection below—its contents, the creator, etc. Make it short and sweet, but not too short so folks don’t simply skip over it entirely.</p>
+        </div>
+    </section>
+
+    <section class="container">
+        <div class="row">
+            <div class="col-md-8 mx-auto">
+                <a href="/" title="Back to search page" class="float-right">Back</a>
+                <h2 class="mb-4">Results</h2>
+                <div class="p-3">
+                    <span class="font-weight-bold">Book title:</span> {{ book_title }} <br>
+                    <span class="font-weight-bold">Book author:</span> {{ book_author }}
+                </div>
+
+                <div class="p-3">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                            <th scope="col">Book title</th>
+                            <th scope="col">Match</th>
+                            <th scope="col">Book rating</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for result in results %}
+                                    <tr>
+                                        <td>{{ result[0]                    }}</td>
+                                        <td>{{ (result[1] * 100)|round(1)   }}</td>
+                                        <td>{{ result[2]|round(1)           }}</td>
+                                    </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>
+    </section>
+</main>
+
+
+{% endblock %}

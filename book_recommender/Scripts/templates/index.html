@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Search form{% endblock %}
+{% block head %}
+    {{ super() }}
+{% endblock %}
+{% block content %}
+    
+<main role="main">
+    <section class="jumbotron text-center">
+        <div class="container">
+            <h1>Recommendation system</h1>
+            <p class="lead text-muted">Something short and leading about the collection below—its contents, the creator, etc. Make it short and sweet, but not too short so folks don’t simply skip over it entirely.</p>
+        </div>
+    </section>
+
+    <section class="container">
+        <form method="post" action="/results">
+            <div class="row">
+                <div class="col-md-8 mx-auto">
+                    <h2 class="mb-4">Search form</h2>
+
+                    <div class="form-group">
+                        <label for="BookTitle">Book title</label>
+                        <input type="text" class="form-control" id="BookTitle" name="BookTitle" placeholder="Please fill book title...">
+                    </div>
+                    <div class="form-group">
+                        <label for="BookAuthor">Book author</label>
+                        <input type="text" class="form-control" id="BookAuthor" name="BookAuthor" placeholder="Please fill book author...">
+                    </div>        
+                    <div class="form-group">
+                        <input type="submit" class="btn btn-primary" name="Send" value="Send">
+                    </div>
+                </div>
+            </div>
+          </form>
+    </section>
+</main>
+
+
+{% endblock %}
