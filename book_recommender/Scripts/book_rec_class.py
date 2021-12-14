@@ -34,7 +34,6 @@ class Book_database(object):
         book_readers = np.unique(book_readers.tolist())
 
         # final dataset
-
         books_of_given_readers = self.dataset[(self.dataset['User-ID'].isin(book_readers))]
 
 
@@ -54,31 +53,29 @@ class Book_database(object):
 
 
         # group by User and Book and compute mean
-
         ratings_data_raw_nodup = ratings_data_raw.groupby(['User-ID', 'Book-Title'])['Book-Rating'].mean()
-
 
         # reset index to see User-ID in every row
         ratings_data_raw_nodup = ratings_data_raw_nodup.to_frame().reset_index()
+
+        # reshape the data and make BookTitle as x-axe
         dataset_for_corr = ratings_data_raw_nodup.pivot(index='User-ID', columns='Book-Title', values='Book-Rating')
 
-        # Take out the Lord of the Rings selected book from correlation dataframe
+        # take out given book from selected books from correlation dataframe
         dataset_of_other_books = dataset_for_corr.copy(deep=False)
         dataset_of_other_books.drop([book_title_input], axis=1, inplace=True)
 
         book_titles = list(dataset_of_other_books.keys())
-        
-        # print(dataset_of_other_books.head())
-        
         correlations = []
         avg_rating = []
 
         # corr computation
         book_input_ratings = dataset_for_corr[book_title_input]
 
-        # tmp = ratings_data_raw[ratings_data_raw['Book-Title'].isin(book_titles)]
-        # aaa = tmp[['Book-Title','Book-Rating']].groupby(['Book-Title']).mean()
-        # print(aaa.head())
+        tmp = ratings_data_raw[ratings_data_raw['Book-Title'].isin(book_titles)]
+        aaa = tmp[['Book-Title','Book-Rating']].groupby(['Book-Title']).mean()
+        print(aaa.head())
+
 
         for book_title in book_titles:
 
@@ -86,8 +83,12 @@ class Book_database(object):
 
             tab = (ratings_data_raw[ratings_data_raw['Book-Title'] == book_title].groupby(
                 ratings_data_raw['Book-Title']).mean())
-            
+
+            # print(tab['Book-Title'])
+            print(tab['Book-Rating'].min())
             avg_rating.append(tab['Book-Rating'].min())
+
+
 
         # creating structure of data for output, sorting it from by greatest match and selecting first 10 books
         book_corr = list(zip(book_titles, correlations, avg_rating))

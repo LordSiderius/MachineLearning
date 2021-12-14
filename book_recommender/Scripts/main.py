@@ -1,6 +1,6 @@
 from flask import Flask, request, render_template
 import book_rec_class
-
+import os
 
 DEBUG = True
 
@@ -27,4 +27,7 @@ def results():
     return render_template('results.html', book_title=book_title, book_author=book_author, results=results)
 
 if __name__ == '__main__':
+
+    port = int(os.environ.get("PORT", 5000))
+
     app.run(debug=True, host='0.0.0.0')
