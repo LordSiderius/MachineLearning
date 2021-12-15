@@ -1,7 +1,9 @@
 # import
 import pandas as pd
 import numpy as np
+import time
 
+tic = time.perf_counter()
 # load ratings
 ratings = pd.read_csv('data/BX-Book-Ratings.csv', encoding='cp1251', sep=';')
 ratings = ratings[ratings['Book-Rating']!=0]
@@ -73,3 +75,6 @@ for LoR_book in LoR_list:
 print("Correlation for book:", LoR_list[0])
 #print("Average rating of LOR:", ratings_data_raw[ratings_data_raw['Book-Title']=='the fellowship of the ring (the lord of the rings, part 1'].groupby(ratings_data_raw['Book-Title']).mean()))
 rslt = result_list[0]
+
+tac = time.perf_counter()
+print('time', tac - tic )

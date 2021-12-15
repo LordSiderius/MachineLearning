@@ -1,6 +1,7 @@
 # import
 import pandas as pd
 import numpy as np
+import time
 
 
 class Book_database(object):
@@ -53,7 +54,6 @@ class Book_database(object):
         ratings_data_raw = books_of_given_readers[['User-ID', 'Book-Rating', 'Book-Title']][
             books_of_given_readers['Book-Title'].isin(books_to_compare)]
 
-
         # group by User and Book and compute mean
         ratings_data_raw_nodup = ratings_data_raw.groupby(['User-ID', 'Book-Title'])['Book-Rating'].mean()
 
@@ -67,30 +67,31 @@ class Book_database(object):
         dataset_of_other_books = dataset_for_corr.copy(deep=False)
         dataset_of_other_books.drop([book_title_input], axis=1, inplace=True)
 
+        # average rating calcualtion
         book_titles = list(dataset_of_other_books.keys())
-        correlations = []
-        avg_rating = []
 
-        # given book ratings
+        books_avarage_rating = ratings_data_raw.groupby(['Book-Title'])['Book-Rating'].mean()
+        avg_ratings_list = list(books_avarage_rating[book_titles])
+
+        # correlation calculation
         book_input_ratings = dataset_for_corr[book_title_input]
 
-        for book_title in book_titles:
+        correlations = []
 
+        for book_title in book_titles:
             # correlation of each book from other books list with given book
             correlations.append(book_input_ratings.corr(dataset_of_other_books[book_title]))
 
-            # calculation of average rating of each book from other books list
-            tab = (ratings_data_raw[ratings_data_raw['Book-Title'] == book_title].groupby(
-                ratings_data_raw['Book-Title']).mean())
-
-            avg_rating.append(tab['Book-Rating'].min())
-
-
-
         # creating structure of data for output, sorting it from by greatest match and selecting first 10 books
-        book_corr = list(zip(book_titles, correlations, avg_rating))
+        book_corr = list(zip(book_titles, correlations, avg_ratings_list))
         book_corr.sort(key=lambda x: x[1], reverse=True)
-        book_corr = book_corr[0:9]
+
+        # remove books with correlation coef below 0.3
+        threshold_match = 0.3
+        book_corr = [book_corr for book_corr in book_corr if book_corr[1] > threshold_match]
+
+        # returns first 10 elements or books with corr coef above threshold
+        book_corr = book_corr[0:min(9, len(book_corr))]
 
         return book_corr
 
@@ -99,7 +100,7 @@ if __name__ == '__main__':
     # loading the database
     book_database = Book_database()
 
-    book_title_input = 'The fellowship of the ring (the lord of the rings, part 1)'
+    book_title_input = 'The Fellowship of the ring (the lord of the rings, part 1)'
     book_author = 'tolkien'
     threshold = 8
 

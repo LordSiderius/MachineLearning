@@ -1,4 +1,6 @@
 # import
+import time
+
 import pandas as pd
 import numpy as np
 
@@ -31,9 +33,7 @@ class Book_database(object):
             (self.dataset['Book-Title'] == book_title_input) &
             (self.dataset['Book-Author'].str.contains(book_author))]
 
-        book_readers = np.unique(book_readers.tolist())
-
-        # final dataset
+        book_readers = book_readers.drop_duplicates()
         books_of_given_readers = self.dataset[(self.dataset['User-ID'].isin(book_readers))]
 
 
@@ -51,9 +51,18 @@ class Book_database(object):
         ratings_data_raw = books_of_given_readers[['User-ID', 'Book-Rating', 'Book-Title']][
             books_of_given_readers['Book-Title'].isin(books_to_compare)]
 
+        print(ratings_data_raw.head())
+
 
         # group by User and Book and compute mean
-        ratings_data_raw_nodup = ratings_data_raw.groupby(['User-ID', 'Book-Title'])['Book-Rating'].mean()
+        books_avarage_rating = ratings_data_raw.groupby(['Book-Title'])['Book-Rating'].mean()
+        avg_ratings_list = list(books_avarage_rating['Book-Rating'])
+
+
+        # ratings_data_raw_nodup = ratings_data_raw.groupby(['User-ID', 'Book-Title'])['Book-Rating'].mean()
+        books_avarage_rating = ratings_data_raw.groupby(['Book-Title'])['Book-Rating'].mean()
+
+        print(ratings_data_raw_nodup['stardust'])
 
         # reset index to see User-ID in every row
         ratings_data_raw_nodup = ratings_data_raw_nodup.to_frame().reset_index()
@@ -67,30 +76,30 @@ class Book_database(object):
 
         book_titles = list(dataset_of_other_books.keys())
         correlations = []
-        avg_rating = []
+
+
+
+        avg_ratings = ratings_data_raw[ratings_data_raw['Book-Title'].isin(book_titles)][['Book-Title', 'Book-Rating']].groupby(['Book-Title']).mean()
+        avg_ratings_list = list(avg_ratings['Book-Rating'])
 
         # corr computation
         book_input_ratings = dataset_for_corr[book_title_input]
 
-        tmp = ratings_data_raw[ratings_data_raw['Book-Title'].isin(book_titles)]
-        aaa = tmp[['Book-Title','Book-Rating']].groupby(['Book-Title']).mean()
+        print('dataset A', book_input_ratings)
+        print('autocorrelation:', book_input_ratings.corr(book_input_ratings))
 
+        print('datset B', dataset_for_corr.head())
 
-        for book_title in book_titles:
+        correlations = book_input_ratings[''].corr(dataset_for_corr[book_titles])
+        # for book_title in book_titles:
 
-            correlations.append(book_input_ratings.corr(dataset_of_other_books[book_title]))
-
-            tab = (ratings_data_raw[ratings_data_raw['Book-Title'] == book_title].groupby(
-                ratings_data_raw['Book-Title']).mean())
-
-            avg_rating.append(tab['Book-Rating'].min())
-
-
+            # correlations.append(book_input_ratings.corr(dataset_of_other_books[dataset_of_other_books]))
 
         # creating structure of data for output, sorting it from by greatest match and selecting first 10 books
-        book_corr = list(zip(book_titles, correlations, avg_rating))
+        book_corr = list(zip(book_titles, correlations, avg_ratings_list))
         book_corr.sort(key=lambda x: x[1], reverse=True)
-        book_corr = book_corr[0:9]
+        book_corr = [book_corr for book_corr in book_corr if book_corr[1] > 0]
+        book_corr = book_corr[0:min(9, len(book_corr))]
 
         return book_corr
 
@@ -99,7 +108,7 @@ if __name__ == '__main__':
     # loading the database
     book_database = Book_database()
 
-    book_title_input = 'The fellowship of the ring (the lord of the rings, part 1)'
-    book_author = 'tolkien'
+    book_title_input = 'The Fellowship of the ring (the lord of the rings, part 1)'
+    book_author = ''
     threshold = 8
     print(book_database.recommend(book_title_input, book_author, threshold))
