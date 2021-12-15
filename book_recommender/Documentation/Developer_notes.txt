@@ -1,22 +1,63 @@
-should find user, who reads tolkien and the fellowship of the ring (the lord of the rings, part 1)
+Analýza book_rec_orig.py (pùvodnì book_rec.py)
 
-and return other books they read?
+--------------------------------------------------------------------------------
+plus:
++ kód funguje a dìlá, co má(vzhledem k zadání pøes reverse engineering)
 
-quality of other books are comapred to threshold, to recommend only ones woth high amount of ratings
+minus:
+kritické nedostatky:
+- chybí jakýkoliv použitelný výstup i ten tisknutý do konzole -> žádná zpìtná vazba
+- u podobné apliakce bych oèekával možnost inputu od uživatele
 
-programm execution:
+problémová místa:
+- opravit databázi na chybových øádcích -> report správci databáze
+- volání funkcí, které se k nièemu nevyúživají a jen zpomnalují bìh programu
+- iterace pøes seznam knih s jedinou položkou
+- název knihy je hard coded na nìkolika místech skriptu 
+- nìkdy zbyteèné pøevody mezi listy a pandas dataframy(napø ln 65)
+- volání funkce mean() a min() k získání hodnot, které se dají získat pøes key(napø. ln 62-63)
+- magic number v kódu
 
-load ratigns of books, which are not zero
-load books database
+rušivé:
+- promìnné se jmenují pøesnì k jednomu danému usecasu(napø. LoR_list)
+- zakomentovaný kód
+- nejednotný styl komentáøù
+- kód bìží s výpisem warningù
+
+--------------------------------------------------------------------------------
+provedené úpravy:
+
+- vytvoøení objektu -> rozdìlení skriptu na èást naèítání databáze(pomalé) 
+a recommend enginu(dostateènì rychlé k použití v aplikaci)  
+- pøeskoèení chybových øádkù pøi naèítání databáze + nastavení datových typù
+- pøidání inputu book title a author, jejich okleštìní a lowercase
+- threshold pro poèet ratingù knih odstranìn jako magic number
+- redukce zbyteèných for loop
+- výstup upraven do listu, kde je pùnik prvních 10 knih a correlace vyšší
+ než threshold(default 0.3)
 
 
-opravit databázi na chybových øádcích -> report správci databáze
-kód jet podle ISBN, což je unikátní identiofikátor, místo book title
-nakonec nahrát data z pùvodního datasetu, kvùli veliksoti písma
-rozdìlení naèítání databáze, které je pomalé a search funkce
-odstranit zbyteèné for loops
+--------------------------------------------------------------------------------
+návrh vylepšení
+HTML:
+- pøidat našeptávaè z databáze do HTML, k vyhnutí se chybì, že kniha není v záznamech
+- rozšíøit error stránku o informaci, proè to padlo
 
-pøidat našeptávaè z databáze
-ovìøit, že se našla pouze jedna kniha podle ISBN
-udìlat, aby staèil jen kus názvu knihy a nemusel být pøesnì tak ,ajk je v databázi(nejspíš by vyøešil našeptávaè)
-rozšíøit error stránku o informaci, proè to padlo
+Python:
+- zmìnit na lowercase jen používané sloupce Book-Title a Book-Author
+- inteligentní parsování knih podle shody autora a èásteèné shody názvu 
+díla(riziko nabrání více knižek, ale zato zmergovaní knížek, které jsou
+indiviuálnì v databázi, napø první díl pána prstenù nenaète všechny první díly pána prstenù)
+- nakonec do výstupu nahrát data z pùvodního datasetu knih, kvùli velikosti písma
+a roku vydání, obrázku atd
+- pøepsat i korelaci mimo for loop(to jsem ještì nedal dohromady)
+
+
+--------------------------------------------------------------------------------
+Otázky:
+- pøevrácení pomocí funkce pivot; operace na ln 55-65 mi jsou nìjak zvláštní, osobnì mi pøijde, 
+že to je nìjak pøekombinované, ale nenašel jsem v daném èase lepší øešení
+
+- zvlášní, že ve výbìru není druhý a tøetí díl pána prstenù, buï ho nikdo nerecenzoval, 
+nebo chybí v databázi,  ani jedno se mi moc nezdá
+

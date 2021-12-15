@@ -1,8 +1,5 @@
 # import
 import pandas as pd
-import numpy as np
-import time
-
 
 class Book_database(object):
     def __init__(self, books_path='data/BX-Books.csv', ratings_path='data/BX-Book-Ratings.csv'):
@@ -25,7 +22,11 @@ class Book_database(object):
 
     def recommend(self, book_title_input='the fellowship of the ring (the lord of the rings, part 1)',
                   book_author='tolkien', threshold=8):
-
+        """
+            Function for book recommendation. Input is "book title", "author" and threshold of
+            minimal rating count of recommended books(default = 8).
+             .recommend('the fellowship of the ring (the lord of the rings, part 1)', 'tolkien', 8)
+        """
 
         # string of book title and book author are stripped and make lowercase to make them comparable
         book_title_input = book_title_input.strip().lower()
@@ -36,7 +37,7 @@ class Book_database(object):
             (self.dataset['Book-Author'].str.contains(book_author))]
 
         # removal of duplicities in books readers
-        book_readers = np.unique(book_readers.tolist())
+        book_readers = book_readers.drop_duplicates()
 
         # set of books read by identified readers
         books_of_given_readers = self.dataset[(self.dataset['User-ID'].isin(book_readers))]
@@ -49,8 +50,7 @@ class Book_database(object):
         books_to_compare = number_of_rating_per_book['Book-Title'][
             number_of_rating_per_book['User-ID'] >= threshold]  # !!! 8 as magic number
 
-        books_to_compare = books_to_compare.tolist()
-
+        # books which were read by readers of given book
         ratings_data_raw = books_of_given_readers[['User-ID', 'Book-Rating', 'Book-Title']][
             books_of_given_readers['Book-Title'].isin(books_to_compare)]
 
@@ -67,15 +67,15 @@ class Book_database(object):
         dataset_of_other_books = dataset_for_corr.copy(deep=False)
         dataset_of_other_books.drop([book_title_input], axis=1, inplace=True)
 
-        # average rating calcualtion
+        # average rating calculation
         book_titles = list(dataset_of_other_books.keys())
 
         books_avarage_rating = ratings_data_raw.groupby(['Book-Title'])['Book-Rating'].mean()
         avg_ratings_list = list(books_avarage_rating[book_titles])
 
         # correlation calculation
+        # ratings of given book
         book_input_ratings = dataset_for_corr[book_title_input]
-
         correlations = []
 
         for book_title in book_titles:
