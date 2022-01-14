@@ -8,20 +8,20 @@ import folium
 from IPython.display import display, HTML
 from folium import plugins
 import copy
+from math import cos
 
-class Data_extractor(object):
+class DataExtractor(object):
 
-    def shit(self, a, b):
-        return a + b / 60.0
-
-    def __init__(self, resolution=200):
-        n = 50000 / resolution  # width of map - 50km split by 200 meters
-        m = 75000 / resolution  # height of map - 75km split by 200 meters
+    def __init__(self, map_range, resolution=200):
 
         dataset = pd.read_csv('database', names=['UTC', 'latitude', 'longitude'], sep=',')
 
-        dataset = dataset.drop_duplicates()
 
+        dataset = dataset.groupby(['UTC', 'longitude', 'latitude']).size().reset_index(name='count')
+
+        dataset = dataset.drop_duplicates()#.reset_index(drop=True, inplace=True)
+
+        dataset['duration'] = dataset['count'].apply(lambda x: x * 15)
         dataset['UTC'] = dataset['UTC'].apply(lambda x: x / 1000)
         dataset['day'] = dataset['UTC'].apply(lambda x: float(datetime.utcfromtimestamp(x).strftime('%d')))
         dataset['month'] = dataset['UTC'].apply(lambda x: float(datetime.utcfromtimestamp(x).strftime('%m')))
@@ -31,11 +31,24 @@ class Data_extractor(object):
         dataset['minute'] = dataset['UTC'].apply(lambda x: float(datetime.utcfromtimestamp(x).strftime('%M')))
         dataset['timeofday'] = (dataset['hour'] + dataset['minute'] / 60.0) / 24.0
 
+        dataset = dataset.reset_index(drop=True)
+
+        dataset = dataset[dataset['latitude'] > map_range[0]]
+        dataset = dataset[dataset['latitude'] < map_range[1]]
+        dataset = dataset[dataset['longitude'] > map_range[2]]
+        dataset = dataset[dataset['longitude'] < map_range[3]]
+
 
         lat_min = dataset['latitude'].min()
         lat_max = dataset['latitude'].max()
         long_min = dataset['longitude'].min()
         long_max = dataset['longitude'].max()
+
+
+        lat_step, lon_step = self.coordinates_step(lat_min, lat_max, long_min, long_max, resolution)
+
+        n = np.floor((lat_max - lat_min) / lat_step)
+        m = np.floor((long_max - long_min) / lon_step)
 
         lat_borders = list(np.linspace(lat_min, lat_max, int(n)))
         long_borders = np.linspace(long_min, long_max, int(m))
@@ -44,7 +57,6 @@ class Data_extractor(object):
         dataset['width_idx'] = dataset['longitude'].apply(lambda x: self.get_index(long_borders, x))
 
         self.dataset = dataset
-
 
 
     def mapping_data(self, gps_data):
@@ -62,6 +74,16 @@ class Data_extractor(object):
                 return i
 
         return None
+
+    def coordinates_step(self, lat0, lat1, lon0, lon1, step_meters=200):
+        '''Function to calculate approximate size of step on map from meters to degrees'''
+        # earth's radius in meters
+        R = 6378000
+
+        lat_step = step_meters / R / 3.1416 * 180
+        lon_step = step_meters / (R * cos(abs(lat0 + lat1)/180 * 3.1416 / 2)) / 3.1416 * 180
+
+        return lat_step, lon_step
 
     def data_visualisation(self, range=(13.978658, 14.879769, 49.896474, 50.260075) ):
         gps_data = tuple(zip(self.dataset['latitude'].values, self.dataset['longitude'].values))
@@ -97,8 +119,6 @@ class Data_extractor(object):
 
     def visualization_by_sameday(self):
 
-
-
         data = self.dataset['UTC'].groupby([self.dataset['height_idx'], self.dataset['width_idx']]).count().plot(kind='bar')
         plt.show()
         # print(data.head(30))
@@ -110,7 +130,9 @@ class Data_extractor(object):
 
 
 if __name__ == '__main__':
-    data_ex = Data_extractor(200)
+    map_range = (50.07, 50.1, 14.42, 14.45)
+    data_ex = DataExtractor(map_range, 20)
+    print(data_ex.dataset[['UTC', 'duration']].head(5))
     # data_ex.visualization_by_sameday()
     # data_ex.data_visualisation()
     data_ex.data_visualisation2(day=0)
