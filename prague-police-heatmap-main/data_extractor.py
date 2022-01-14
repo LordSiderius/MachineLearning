@@ -17,11 +17,11 @@ class DataExtractor(object):
         dataset = pd.read_csv('database', names=['UTC', 'latitude', 'longitude'], sep=',')
 
 
-        dataset = dataset.groupby(['UTC', 'longitude', 'latitude']).size().reset_index(name='count')
+        dataset = dataset.groupby(['UTC', 'longitude', 'latitude']).size().reset_index(name='duration')
 
         dataset = dataset.drop_duplicates()#.reset_index(drop=True, inplace=True)
 
-        dataset['duration'] = dataset['count'].apply(lambda x: x * 15)
+        dataset['duration'] = dataset['duration'].apply(lambda x: x * 15)
         dataset['UTC'] = dataset['UTC'].apply(lambda x: x / 1000)
         dataset['day'] = dataset['UTC'].apply(lambda x: float(datetime.utcfromtimestamp(x).strftime('%d')))
         dataset['month'] = dataset['UTC'].apply(lambda x: float(datetime.utcfromtimestamp(x).strftime('%m')))
@@ -50,11 +50,11 @@ class DataExtractor(object):
         n = np.floor((lat_max - lat_min) / lat_step)
         m = np.floor((long_max - long_min) / lon_step)
 
-        lat_borders = list(np.linspace(lat_min, lat_max, int(n)))
-        long_borders = np.linspace(long_min, long_max, int(m))
+        self.lat_borders = np.linspace(lat_min, lat_max, int(n))
+        self.long_borders = np.linspace(long_min, long_max, int(m))
 
-        dataset['height_idx'] = dataset['latitude'].apply(lambda x: self.get_index(lat_borders, x))
-        dataset['width_idx'] = dataset['longitude'].apply(lambda x: self.get_index(long_borders, x))
+        dataset['height_idx'] = dataset['latitude'].apply(lambda x: self.get_index(self.lat_borders, x))
+        dataset['width_idx'] = dataset['longitude'].apply(lambda x: self.get_index(self.long_borders, x))
 
         self.dataset = dataset
 
@@ -132,7 +132,7 @@ class DataExtractor(object):
 if __name__ == '__main__':
     map_range = (50.07, 50.1, 14.42, 14.45)
     data_ex = DataExtractor(map_range, 20)
-    print(data_ex.dataset[['UTC', 'duration']].head(5))
+    print(data_ex.dataset[['UTC', 'height_idx', 'width_idx', 'duration']].head(5))
     # data_ex.visualization_by_sameday()
     # data_ex.data_visualisation()
     data_ex.data_visualisation2(day=0)
