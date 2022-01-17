@@ -15,6 +15,9 @@ import math
 from datetime import timedelta
 from data_extractor import DataExtractor
 import copy
+from sklearn.neural_network import MLPClassifier
+from sklearn.svm import LinearSVC
+from sklearn.neighbors import NearestNeighbors
 
 # Mapping
 
@@ -43,9 +46,38 @@ class DataAnalyzer(object):
 
 
     def select_data(self, lat_borders, long_borders):
-        print(self.dataset.groupby(['height_idx', 'width_idx', 'weekday'])[['height_idx', 'width_idx', 'weekday', 'timeofday']].head(35))
-        print(self.dataset['timeofday'][(self.dataset['height_idx'] == 12) & (self.dataset['width_idx'] == 6)].head())
+        print(self.dataset.groupby(['height_idx', 'width_idx'])[['timeofday']].count().head(35))
+        print(self.dataset['timeofday'][(self.dataset['height_idx'] == 4) & (self.dataset['width_idx'] == 3)].head(40))
         print((lat_borders[12] + lat_borders[13] )/ 2, (long_borders[6] + long_borders[7]) / 2)
+
+
+        time_column = np.linspace(0, 1 , num=101).reshape(-1, 1)
+        results = np.zeros(101)
+
+        ref_times = self.dataset['timeofday'][(self.dataset['height_idx'] == 4) & (self.dataset['width_idx'] == 3)].values
+        for i in range(len(time_column)):
+            for ref_time in ref_times:
+                if (time_column[i] - 0.005 < ref_time) and (ref_time <= time_column[i] + 0.005):
+                    results[i] += 1
+        print(time_column)
+        print(results)
+
+        plt.plot(time_column*24,results)
+        plt.show()
+        print(sum(results))
+        # for epoch in range(5):
+        #     clf = MLPClassifier(random_state=1, max_iter=300).fit(time_column, results)
+        # clf = NearestNeighbors(n_neighbors=2, algorithm='ball_tree')
+        # clf.fit(time_column, results)
+        # print(clf.predict(time_column))
+        #
+        # print(results)
+
+
+
+
+    def create_restult_col(self):
+        self.dataset
 
 
 if __name__ == '__main__':
